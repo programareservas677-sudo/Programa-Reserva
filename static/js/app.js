@@ -1,4 +1,5 @@
 let correoActual = "";
+let temporizador = null;
  
 document.getElementById("reservaForm").addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -22,10 +23,11 @@ document.getElementById("reservaForm").addEventListener("submit", async function
         correoActual = correo;
  
         document.getElementById("verificacion").style.display = "block";
- 
         document.getElementById("correo").disabled = true;
  
         mostrarMensaje(resultado.mensaje, true);
+ 
+        iniciarTemporizador(resultado.segundos_restantes);
  
     } else {
  
@@ -63,12 +65,70 @@ document.getElementById("verificarPin").addEventListener("click", async function
         document.getElementById("pin").disabled = true;
         document.getElementById("verificarPin").disabled = true;
  
+        if (temporizador) {
+            clearInterval(temporizador);
+        }
+ 
     } else {
  
         mostrarMensaje(resultado.mensaje, false);
     }
- 
 });
+ 
+ 
+function iniciarTemporizador(segundos) {
+ 
+    if (temporizador) {
+        clearInterval(temporizador);
+    }
+ 
+    let tiempo = segundos;
+ 
+    mostrarTiempo(tiempo);
+ 
+    temporizador = setInterval(function() {
+ 
+        tiempo--;
+ 
+        mostrarTiempo(tiempo);
+ 
+        if (tiempo <= 0) {
+ 
+            clearInterval(temporizador);
+ 
+            mostrarMensaje(
+                "El código ha expirado. Ahora puede solicitar un nuevo código.",
+                false
+            );
+ 
+            document.getElementById("correo").disabled = false;
+        }
+ 
+    }, 1000);
+}
+ 
+ 
+function mostrarTiempo(segundos) {
+ 
+    const minutos = Math.floor(segundos / 60);
+    const segundosRestantes = segundos % 60;
+ 
+    let elemento = document.getElementById("tiempoPIN");
+ 
+    if (!elemento) {
+ 
+        elemento = document.createElement("p");
+        elemento.id = "tiempoPIN";
+ 
+        document.getElementById("verificacion").appendChild(elemento);
+    }
+ 
+    elemento.textContent =
+        "Tiempo restante: " +
+        minutos +
+        ":" +
+        segundosRestantes.toString().padStart(2, "0");
+}
  
  
 function mostrarMensaje(mensaje, correcto) {

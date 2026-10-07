@@ -21,13 +21,14 @@ def inicio():
  
 @app.route("/validar-correo", methods=["POST"])
 def validar_correo():
+ 
     datos = request.get_json()
     correo = datos.get("correo", "").strip().lower()
  
     if correo.endswith("@itcr.ac.cr"):
         tipo = "profesor o administrativo"
  
-    elif correo.endswith("@estudiantec.cr"):
+    elif correo.endswith("programareservas677@gmail.com"):
         tipo = "estudiante"
  
     else:
@@ -40,7 +41,9 @@ def validar_correo():
     pin_existente = pins.get(correo)
  
     if pin_existente:
+ 
         if datetime.now() < pin_existente["expira"]:
+ 
             segundos_restantes = int(
                 (pin_existente["expira"] - datetime.now()).total_seconds()
             )
@@ -54,13 +57,13 @@ def validar_correo():
             })
  
         else:
-            # El PIN ya expiró, así que se puede generar uno nuevo
+            # El PIN ya expiró
             del pins[correo]
  
     # Generar un nuevo PIN
     pin = str(secrets.randbelow(1000000)).zfill(6)
  
-    # Guardar PIN durante 10 minutos
+    # Guardar PIN durante 5 minutos
     pins[correo] = {
         "pin": pin,
         "expira": datetime.now() + timedelta(minutes=5),
@@ -75,11 +78,12 @@ def validar_correo():
  
     mensaje.set_content(
         f"Su código de verificación es: {pin}\n\n"
-        "Este código tiene una duración de 10 minutos.\n"
+        "Este código tiene una duración de 5 minutos.\n"
         "No solicite otro código mientras este código esté vigente."
     )
  
     try:
+ 
         with smtplib.SMTP(
             os.getenv("SMTP_SERVER"),
             int(os.getenv("SMTP_PORT"))
@@ -95,9 +99,9 @@ def validar_correo():
             servidor.send_message(mensaje)
  
     except Exception as error:
+ 
         print("Error enviando correo:", error)
  
-        # Si no se pudo enviar, eliminar el PIN generado
         if correo in pins:
             del pins[correo]
  
@@ -113,3 +117,51 @@ def validar_correo():
         "segundos_restantes": 300,
         "mensaje": "El código de verificación fue enviado a su correo. Tiene 5 minutos para utilizarlo."
     })
+ 
+ 
+@app.route("/verificar-pin", methods=["POST"])
+def verificar_pin():
+ 
+    datos = request.get_json()
+ 
+    correo = datos.get("correo", "").strip().lower()
+    pin_ingresado = datos.get("pin", "").strip()
+ 
+    datos_pin = pins.get(correo)
+ 
+    if not datos_pin:
+        return jsonify({
+            "valido": False,
+            "mensaje": "No existe un código pendiente para este correo."
+        })
+ 
+    # Comprobar si expiró
+    if datetime.now() > datos_pin["expira"]:
+ 
+        del pins[correo]
+ 
+        return jsonify({
+            "valido": False,
+            "mensaje": "El código ha expirado. Solicite uno nuevo."
+        })
+ 
+    # Comprobar PIN
+    if pin_ingresado != datos_pin["pin"]:
+ 
+        return jsonify({
+            "valido": False,
+            "mensaje": "El código ingresado es incorrecto."
+        })
+ 
+    # PIN correcto
+    del pins[correo]
+ 
+    return jsonify({
+        "valido": True,
+        "mensaje": "Correo verificado correctamente."
+    })
+ 
+ 
+if __name__ == "__main__":
+    app.run(debug=True)
+ 
