@@ -26,21 +26,44 @@ def validar_correo():
  
     if correo.endswith("@itcr.ac.cr"):
         tipo = "profesor o administrativo"
+ 
     elif correo.endswith("@estudiantec.cr"):
         tipo = "estudiante"
+ 
     else:
         return jsonify({
             "valido": False,
             "mensaje": "Debe utilizar un correo institucional del TEC."
         })
  
-    # Generar PIN
+    # Comprobar si ya existe un PIN vigente
+    pin_existente = pins.get(correo)
+ 
+    if pin_existente:
+        if datetime.now() < pin_existente["expira"]:
+            segundos_restantes = int(
+                (pin_existente["expira"] - datetime.now()).total_seconds()
+            )
+ 
+            return jsonify({
+                "valido": True,
+                "tipo": tipo,
+                "nuevo_pin": False,
+                "segundos_restantes": segundos_restantes,
+                "mensaje": "Ya se envió un código. Debe esperar a que expire antes de solicitar uno nuevo."
+            })
+ 
+        else:
+            # El PIN ya expiró, así que se puede generar uno nuevo
+            del pins[correo]
+ 
+    # Generar un nuevo PIN
     pin = str(secrets.randbelow(1000000)).zfill(6)
  
     # Guardar PIN durante 10 minutos
     pins[correo] = {
         "pin": pin,
-        "expira": datetime.now() + timedelta(minutes=10),
+        "expira": datetime.now() + timedelta(minutes=5),
         "tipo": tipo
     }
  
@@ -52,7 +75,8 @@ def validar_correo():
  
     mensaje.set_content(
         f"Su código de verificación es: {pin}\n\n"
-        "Este código tiene una duración de 10 minutos."
+        "Este código tiene una duración de 10 minutos.\n"
+        "No solicite otro código mientras este código esté vigente."
     )
  
     try:
@@ -73,6 +97,10 @@ def validar_correo():
     except Exception as error:
         print("Error enviando correo:", error)
  
+        # Si no se pudo enviar, eliminar el PIN generado
+        if correo in pins:
+            del pins[correo]
+ 
         return jsonify({
             "valido": False,
             "mensaje": "No se pudo enviar el código de verificación."
@@ -81,9 +109,7 @@ def validar_correo():
     return jsonify({
         "valido": True,
         "tipo": tipo,
-        "mensaje": "El código de verificación fue enviado a su correo."
+        "nuevo_pin": True,
+        "segundos_restantes": 300,
+        "mensaje": "El código de verificación fue enviado a su correo. Tiene 5 minutos para utilizarlo."
     })
- 
- 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
