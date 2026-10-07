@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <title>Reserva de Sala de Reuniones</title>
+ 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+ 
+<body>
+ 
+    <div class="contenedor">
+ 
+        <h1>Reserva de Sala de Reuniones</h1>
+ 
+        <p class="institucion">
+            Instituto Tecnológico de Costa Rica
+        </p>
+ 
+        <form id="reservaForm">
+ 
+            <label for="correo">Correo institucional</label>
+ 
+            <input
+                type="email"
+                id="correo"
+                name="correo"
+                placeholder="Ingrese su correo institucional"
+                required
+            >
+ 
+            <button type="submit">
+                Continuar
+            </button>
+ 
+        </form>
+ 
+    </div>
+ 
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+ 
+</body>
+</html>
