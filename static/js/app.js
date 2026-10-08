@@ -2,83 +2,160 @@ let correoActual = "";
 let temporizador = null;
  
 document.getElementById("reservaForm").addEventListener("submit", async function(event) {
+ 
     event.preventDefault();
  
-    const correo = document.getElementById("correo").value.trim();
+    const correo = document.getElementById("correo").value.trim().toLowerCase();
  
-    const respuesta = await fetch("/validar-correo", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            correo: correo
-        })
-    });
+    const esAdministrador =
+        correo === "programareservas677@gmail.com";
  
-    const resultado = await respuesta.json();
+    const esTEC =
+        correo.endsWith("@itcr.ac.cr");
  
-    if (resultado.valido) {
+    const esEstudiante =
+        correo.endsWith("@estudiantec.cr");
  
-        correoActual = correo;
+    if (!esAdministrador && !esTEC && !esEstudiante) {
  
-        document.getElementById("verificacion").style.display = "block";
-        document.getElementById("correo").disabled = true;
+        mostrarMensaje(
+            "No se puede ingresar. Debe utilizar un correo institucional del TEC.",
+            false
+        );
  
-        mostrarMensaje(resultado.mensaje, true);
- 
-        iniciarTemporizador(resultado.segundos_restantes);
- 
-    } else {
- 
-        mostrarMensaje(resultado.mensaje, false);
-    }
-});
- 
- 
-document.getElementById("verificarPin").addEventListener("click", async function() {
- 
-    const pin = document.getElementById("pin").value.trim();
- 
-    if (pin.length !== 6) {
-        mostrarMensaje("Ingrese un código de 6 dígitos.", false);
         return;
     }
  
-    const respuesta = await fetch("/verificar-pin", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            correo: correoActual,
-            pin: pin
-        })
-    });
+    try {
  
-    const resultado = await respuesta.json();
+        const respuesta = await fetch("/validar-correo", {
  
-    if (resultado.valido) {
+            method: "POST",
  
-        mostrarMensaje(resultado.mensaje, true);
+            headers: {
+                "Content-Type": "application/json"
+            },
  
-        document.getElementById("pin").disabled = true;
-        document.getElementById("verificarPin").disabled = true;
+            body: JSON.stringify({
+                correo: correo
+            })
+        });
  
-        if (temporizador) {
-            clearInterval(temporizador);
+        const resultado = await respuesta.json();
+ 
+        if (resultado.valido) {
+ 
+            correoActual = correo;
+ 
+            document.getElementById("verificacion").style.display = "block";
+ 
+            document.getElementById("correo").disabled = true;
+ 
+            mostrarMensaje(
+                resultado.mensaje,
+                true
+            );
+ 
+            iniciarTemporizador(
+                resultado.segundos_restantes
+            );
+ 
+        } else {
+ 
+            mostrarMensaje(
+                resultado.mensaje,
+                false
+            );
         }
  
-    } else {
+    } catch (error) {
  
-        mostrarMensaje(resultado.mensaje, false);
+        console.error(error);
+ 
+        mostrarMensaje(
+            "No se pudo conectar con el servidor.",
+            false
+        );
     }
+ 
 });
  
+document.getElementById("verificarPin").addEventListener("click", async function() {
+ 
+    const pin =
+        document.getElementById("pin").value.trim();
+ 
+    if (!/^\d{6}$/.test(pin)) {
+ 
+        mostrarMensaje(
+            "Ingrese un código de 6 dígitos.",
+            false
+        );
+ 
+        return;
+    }
+ 
+    try {
+ 
+        const respuesta = await fetch("/verificar-pin", {
+ 
+            method: "POST",
+ 
+            headers: {
+                "Content-Type": "application/json"
+            },
+ 
+            body: JSON.stringify({
+                correo: correoActual,
+                pin: pin
+            })
+        });
+ 
+        const resultado = await respuesta.json();
+ 
+        if (resultado.valido) {
+ 
+            mostrarMensaje(
+                resultado.mensaje,
+                true
+            );
+ 
+            document.getElementById("pin").disabled = true;
+ 
+            document.getElementById("verificarPin").disabled = true;
+ 
+            if (temporizador !== null) {
+                clearInterval(temporizador);
+                temporizador = null;
+            }
+ 
+            setTimeout(function() {
+                window.location.href = "/calendario";
+            }, 700);
+ 
+        } else {
+ 
+            mostrarMensaje(
+                resultado.mensaje,
+                false
+            );
+        }
+ 
+    } catch (error) {
+ 
+        console.error(error);
+ 
+        mostrarMensaje(
+            "No se pudo conectar con el servidor.",
+            false
+        );
+    }
+ 
+});
  
 function iniciarTemporizador(segundos) {
  
-    if (temporizador) {
+    if (temporizador !== null) {
         clearInterval(temporizador);
     }
  
@@ -96,6 +173,8 @@ function iniciarTemporizador(segundos) {
  
             clearInterval(temporizador);
  
+            temporizador = null;
+ 
             mostrarMensaje(
                 "El código ha expirado. Ahora puede solicitar un nuevo código.",
                 false
@@ -107,47 +186,43 @@ function iniciarTemporizador(segundos) {
     }, 1000);
 }
  
- 
 function mostrarTiempo(segundos) {
  
-    const minutos = Math.floor(segundos / 60);
-    const segundosRestantes = segundos % 60;
+    const minutos =
+        Math.floor(segundos / 60);
  
-    let elemento = document.getElementById("tiempoPIN");
+    const segundosRestantes =
+        segundos % 60;
  
-    if (!elemento) {
+    const elemento =
+        document.getElementById("tiempoPIN");
  
-        elemento = document.createElement("p");
-        elemento.id = "tiempoPIN";
+    if (elemento) {
  
-        document.getElementById("verificacion").appendChild(elemento);
+        elemento.textContent =
+            "Tiempo restante: " +
+            minutos +
+            ":" +
+            segundosRestantes
+                .toString()
+                .padStart(2, "0");
     }
- 
-    elemento.textContent =
-        "Tiempo restante: " +
-        minutos +
-        ":" +
-        segundosRestantes.toString().padStart(2, "0");
 }
- 
  
 function mostrarMensaje(mensaje, correcto) {
  
-    let elemento = document.getElementById("mensajeSistema");
+    const elemento =
+        document.getElementById("mensajeSistema");
  
-    if (!elemento) {
+    if (elemento) {
  
-        elemento = document.createElement("p");
-        elemento.id = "mensajeSistema";
+        elemento.textContent =
+            mensaje;
  
-        document.querySelector(".contenedor").appendChild(elemento);
-    }
- 
-    elemento.textContent = mensaje;
- 
-    if (correcto) {
-        elemento.style.color = "green";
-    } else {
-        elemento.style.color = "red";
+        elemento.style.color =
+            correcto
+                ? "green"
+                : "red";
     }
 }
+ 

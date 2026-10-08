@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+ 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <title>Calendario - Reserva de Sala</title>
+ 
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+ 
+<body class="pagina-calendario">
+ 
+    <header class="encabezado-calendario">
+ 
+        <div class="encabezado-contenido">
+ 
+            <div>
+ 
+                <span class="titulo-pequeno">
+                    TEC RESERVAS
+                </span>
+ 
+                <h1>
+                    Calendario de reservas
+                </h1>
+ 
+                <p>
+                    Selecciona una fecha para consultar la disponibilidad de la sala.
+                </p>
+ 
+            </div>
+ 
+            <a
+                href="/cerrar-sesion"
+                class="boton-salir">
+                ← Volver al inicio
+            </a>
+ 
+        </div>
+ 
+    </header>
+ 
+    <main class="contenedor-calendario">
+ 
+        <section class="calendario-card">
+ 
+            <div class="calendario-superior">
+ 
+                <button
+                    type="button"
+                    class="boton-mes"
+                    id="mesAnterior">
+                    ‹
+                </button>
+ 
+                <h2 id="mesAnio"></h2>
+ 
+                <button
+                    type="button"
+                    class="boton-mes"
+                    id="mesSiguiente">
+                    ›
+                </button>
+ 
+            </div>
+ 
+            <div class="dias-semana">
+                <span>Lun</span>
+                <span>Mar</span>
+                <span>Mié</span>
+                <span>Jue</span>
+                <span>Vie</span>
+                <span>Sáb</span>
+                <span>Dom</span>
+            </div>
+ 
+            <div
+                class="dias-calendario"
+                id="diasCalendario">
+            </div>
+ 
+            <div class="leyenda">
+ 
+                <span>
+                    <i class="disponible"></i>
+                    Disponible
+                </span>
+ 
+                <span>
+                    <i class="parcial"></i>
+                    Con reservas
+                </span>
+ 
+                <span>
+                    <i class="ocupado"></i>
+                    Día completo
+                </span>
+ 
+            </div>
+ 
+        </section>
+ 
+        <section class="reserva-card">
+ 
+            <span class="titulo-pequeno">
+                NUEVA RESERVA
+            </span>
+ 
+            <h2>
+                Reserva la sala
+            </h2>
+ 
+            <p class="subtitulo">
+                Selecciona una fecha y el horario que necesitas.
+            </p>
+ 
+            <div class="horario-info">
+            <h1 class="subtitulo">
+                Horario de la sala: 7:00 a. m. - 4:20 p. m.
+            </h1>
+ 
+        
+                
+                </small>
+ 
+            </div>
+ 
+            <div
+                id="disponibilidadDia"
+                class="disponibilidad-dia"
+                style="display: none;">
+            </div>
+ 
+            <label for="fecha">
+                Fecha seleccionada
+            </label>
+ 
+            <input
+                type="text"
+                id="fecha"
+                readonly
+                placeholder="Seleccione una fecha"
+            >
+ 
+            <div class="horarios">
+ 
+                <div>
+ 
+                    <label for="horaInicio">
+                        Hora de inicio
+                    </label>
+ 
+                    <select id="horaInicio">
+ 
+                        <option value="">
+                            Seleccione
+                        </option>
+ 
+                    </select>
+ 
+                </div>
+ 
+                <div>
+ 
+                    <label for="horaFin">
+                        Hora de finalización
+                    </label>
+ 
+                    <select id="horaFin">
+ 
+                        <option value="">
+                            Seleccione
+                        </option>
+ 
+                    </select>
+ 
+                </div>
+ 
+            </div>
+ 
+            <label for="descripcion">
+                Descripción de la reunión
+            </label>
+ 
+            <textarea
+                id="descripcion"
+                placeholder="Ej. Reunión de proyecto de programación"
+                maxlength="300"></textarea>
+ 
+            <div class="reglas">
+ 
+                <h3>
+                    Reglas de uso de la sala
+                </h3>
+ 
+                <ul>
+ 
+                    <li>
+                        No consumir alimentos dentro de la sala.
+                    </li>
+ 
+                    <li>
+                        Cerrar las ventanas al finalizar la actividad.
+                    </li>
+ 
+                    <li>
+                        Cuidar los equipos y el mobiliario.
+                    </li>
+ 
+                    <li>
+                        Dejar el espacio limpio y ordenado.
+                    </li>
+ 
+                    <li>
+                        Apagar los equipos utilizados al finalizar.
+                    </li>
+ 
+                    <li>
+                        Respetar el horario de la reserva.
+                    </li>
+ 
+                    <li>
+                        La sala debe quedar disponible a las 4:20 p. m.
+                    </li>
+ 
+                    <li>
+                        La persona que realiza la reserva es responsable del uso adecuado del espacio.
+                    </li>
+ 
+                </ul>
+ 
+            </div>
+ 
+            <div class="aceptar-reglas">
+ 
+                <input
+                    type="checkbox"
+                    id="aceptarReglas">
+ 
+                <label for="aceptarReglas">
+                    Acepto y me comprometo a cumplir las reglas de uso de la sala.
+                </label>
+ 
+            </div>
+ 
+            <button
+                type="button"
+                id="btnReservar"
+                disabled>
+                Confirmar reserva
+            </button>
+ 
+            <p id="mensajeReserva"></p>
+ 
+        </section>
+ 
+    </main>
+ 
+<script>
+ 
+let fechaActual = new Date();
+let reservas = [];
+let fechaSeleccionada = null;
+ 
+const nombresMeses = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre"
+];
+ 
+const mesAnio =
+    document.getElementById("mesAnio");
+ 
+const diasCalendario =
+    document.getElementById("diasCalendario");
+ 
+const fechaInput =
+    document.getElementById("fecha");
+ 
+const horaInicio =
+    document.getElementById("horaInicio");
+ 
+const horaFin =
+    document.getElementById("horaFin");
+ 
+const descripcion =
+    document.getElementById("descripcion");
+ 
+const aceptarReglas =
+    document.getElementById("aceptarReglas");
+ 
+const btnReservar =
+    document.getElementById("btnReservar");
+ 
+const mensajeReserva =
+    document.getElementById("mensajeReserva");
+ 
+const disponibilidadDia =
+    document.getElementById("disponibilidadDia");
+ 
+function crearHorarios() {
+ 
+    for (
+        let minutos = 7 * 60;
+        minutos <= 16 * 60;
+        minutos += 20
+    ) {
+ 
+        const horas =
+            Math.floor(minutos / 60);
+ 
+        const minutosRestantes =
+            minutos % 60;
+ 
+        const hora =
+            String(horas).padStart(2, "0") +
+            ":" +
+            String(minutosRestantes).padStart(2, "0");
+ 
+        const opcionInicio =
+            document.createElement("option");
+ 
+        opcionInicio.value = hora;
+ 
+        opcionInicio.textContent =
+            convertirHora(hora);
+ 
+        horaInicio.appendChild(
+            opcionInicio
+        );
+    }
+ 
+    for (
+        let minutos = 7 * 60 + 20;
+        minutos <= 16 * 60 + 20;
+        minutos += 20
+    ) {
+ 
+        const horas =
+            Math.floor(minutos / 60);
+ 
+        const minutosRestantes =
+            minutos % 60;
+ 
+        const hora =
+            String(horas).padStart(2, "0") +
+            ":" +
+            String(minutosRestantes).padStart(2, "0");
+ 
+        const opcionFin =
+            document.createElement("option");
+ 
+        opcionFin.value = hora;
+ 
+        opcionFin.textContent =
+            convertirHora(hora);
+ 
+        horaFin.appendChild(
+            opcionFin
+        );
+    }
+}
+ 
+function convertirHora(hora) {
+ 
+    const partes =
+        hora.split(":");
+ 
+    let horas =
+        parseInt(partes[0]);
+ 
+    const minutos =
+        partes[1];
+ 
+    const periodo =
+        horas >= 12
+            ? "p. m."
+            : "a. m.";
+ 
+    if (horas === 0) {
+        horas = 12;
+    } else if (horas > 12) {
+        horas -= 12;
+    }
+ 
+    return horas +
+        ":" +
+        minutos +
+        " " +
+        periodo;
+}
+ function convertirMinutos(hora) {
+ 
+    const partes =
+        hora.split(":");
+ 
+    return (
+        parseInt(partes[0]) * 60 +
+        parseInt(partes[1])
+    );
+}
+ 
+function obtenerReservasDia(fecha) {
+ 
+    return reservas.filter(
+        reserva =>
+            reserva.fecha === fecha
+    );
+}
+ 
+function diaEstaCompleto(fecha) {
+ 
+    const reservasDia =
+        obtenerReservasDia(fecha);
+ 
+    if (reservasDia.length === 0) {
+ 
+        return false;
+    }
+ 
+    const intervalos =
+        reservasDia
+            .map(reserva => ({
+ 
+                inicio:
+                    convertirMinutos(
+                        reserva.hora_inicio
+                    ),
+ 
+                fin:
+                    convertirMinutos(
+                        reserva.hora_fin
+                    )
+ 
+            }))
+            .sort(
+                (a, b) =>
+                    a.inicio - b.inicio
+            );
+ 
+    let cobertura =
+        7 * 60;
+ 
+    for (const intervalo of intervalos) {
+ 
+        if (intervalo.inicio > cobertura) {
+ 
+            return false;
+        }
+ 
+        if (intervalo.fin > cobertura) {
+ 
+            cobertura =
+                intervalo.fin;
+        }
+ 
+        if (
+            cobertura >=
+            16 * 60 + 20
+        ) {
+ 
+            return true;
+        }
+    }
+ 
+    return false;
+}
+ 
+async function cargarReservas() {
+ 
+    try {
+ 
+        const respuesta =
+            await fetch("/reservas");
+ 
+        if (!respuesta.ok) {
+ 
+            if (
+                respuesta.status === 401
+            ) {
+ 
+                window.location.href =
+                    "/";
+ 
+                return;
+            }
+ 
+            throw new Error(
+                "No se pudieron obtener las reservas."
+            );
+        }
+ 
+        reservas =
+            await respuesta.json();
+ 
+        mostrarCalendario();
+ 
+    } catch (error) {
+ 
+        console.error(error);
+ 
+        mensajeReserva.textContent =
+            "No se pudieron cargar las reservas.";
+ 
+        mensajeReserva.style.color =
+            "red";
+    }
+}
+ 
+function mostrarCalendario() {
+ 
+    diasCalendario.innerHTML = "";
+ 
+    const anio =
+        fechaActual.getFullYear();
+ 
+    const mes =
+        fechaActual.getMonth();
+ 
+    mesAnio.textContent =
+        nombresMeses[mes] +
+        " " +
+        anio;
+ 
+    const primerDia =
+        new Date(
+            anio,
+            mes,
+            1
+        ).getDay();
+ 
+    const desplazamiento =
+        primerDia === 0
+            ? 6
+            : primerDia - 1;
+ 
+    const cantidadDias =
+        new Date(
+            anio,
+            mes + 1,
+            0
+        ).getDate();
+ 
+    for (
+        let i = 0;
+        i < desplazamiento;
+        i++
+    ) {
+ 
+        const espacio =
+            document.createElement("div");
+ 
+        espacio.classList.add(
+            "dia",
+            "vacio"
+        );
+ 
+        diasCalendario.appendChild(
+            espacio
+        );
+    }
+ 
+    for (
+        let dia = 1;
+        dia <= cantidadDias;
+        dia++
+    ) {
+ 
+        const boton =
+            document.createElement("button");
+ 
+        boton.type = "button";
+ 
+        boton.classList.add("dia");
+ 
+        boton.textContent = dia;
+ 
+        const fecha =
+            crearFechaTexto(
+                anio,
+                mes + 1,
+                dia
+            );
+ 
+        const reservasDia =
+            obtenerReservasDia(fecha);
+ 
+        if (
+            reservasDia.length > 0
+        ) {
+ 
+            if (
+                diaEstaCompleto(fecha)
+            ) {
+ 
+                boton.classList.add(
+                    "dia-ocupado"
+                );
+ 
+            } else {
+ 
+                boton.classList.add(
+                    "dia-parcial"
+                );
+            }
+        }
+ 
+        boton.addEventListener(
+            "click",
+            function() {
+ 
+                seleccionarFecha(
+                    fecha,
+                    boton
+                );
+ 
+            }
+        );
+ 
+        diasCalendario.appendChild(
+            boton
+        );
+    }
+}
+ 
+function crearFechaTexto(
+    anio,
+    mes,
+    dia
+) {
+ 
+    return (
+        anio +
+        "-" +
+        String(mes).padStart(2, "0") +
+        "-" +
+        String(dia).padStart(2, "0")
+    );
+}
+ 
+function seleccionarFecha(
+    fecha,
+    boton
+) {
+ 
+    fechaSeleccionada =
+        fecha;
+ 
+    fechaInput.value =
+        fecha;
+ 
+    document
+        .querySelectorAll(".dia")
+        .forEach(
+            dia => {
+ 
+                dia.style.outline =
+                    "none";
+            }
+        );
+ 
+    boton.style.outline =
+        "3px solid #176fe5";
+ 
+    mostrarDisponibilidad(
+        fecha
+    );
+ 
+    mensajeReserva.textContent =
+        "Fecha seleccionada: " +
+        fecha;
+ 
+    mensajeReserva.style.color =
+        "#176fe5";
+}
+ 
+function mostrarDisponibilidad(fecha) {
+ 
+    const reservasDia =
+        obtenerReservasDia(fecha);
+ 
+    disponibilidadDia.innerHTML = "";
+ 
+    if (reservasDia.length === 0) {
+ 
+        disponibilidadDia.style.display =
+            "block";
+ 
+        disponibilidadDia.className =
+            "disponibilidad-dia disponibilidad-libre";
+ 
+        disponibilidadDia.innerHTML =
+            "<strong>✓ Día disponible</strong>" +
+            "<span>No hay reservas registradas para esta fecha.</span>";
+ 
+        return;
+    }
+ 
+    if (diaEstaCompleto(fecha)) {
+ 
+        disponibilidadDia.style.display =
+            "block";
+ 
+        disponibilidadDia.className =
+            "disponibilidad-dia disponibilidad-completa";
+ 
+        disponibilidadDia.innerHTML =
+            "<strong> Día completo,no hay más reservas disponibles.</strong>" +
+            "<span>No quedan horarios disponibles entre 7:00 a. m. y 4:00 p. m.</span>";
+ 
+        return;
+    }
+ 
+    disponibilidadDia.style.display =
+        "block";
+ 
+    disponibilidadDia.className =
+        "disponibilidad-dia disponibilidad-parcial";
+ 
+    const titulo =
+        document.createElement("label");
+ 
+    titulo.textContent =
+        "Espacios disponibles para esta fecha.";
+ 
+    disponibilidadDia.appendChild(
+        titulo
+    );
+ 
+    const texto =
+        document.createElement("label");
+ 
+    texto.textContent =
+        "Horarios ya reservados:";
+ 
+    disponibilidadDia.appendChild(
+        texto
+    );
+ 
+    reservasDia.forEach(
+        reserva => {
+ 
+            const horario =
+                document.createElement("div");
+ 
+            horario.className =
+                "horario-ocupado";
+ 
+            horario.textContent =
+                convertirHora(
+                    reserva.hora_inicio
+                ) +
+                " - " +
+                convertirHora(
+                    reserva.hora_fin
+                ) +
+                " · Ocupado";
+ 
+            disponibilidadDia.appendChild(
+                horario
+            );
+        }
+    );
+ 
+    const disponible =
+        document.createElement("span");
+ 
+    disponible.className =
+        "mensaje-disponible";
+ 
+    disponible.textContent =
+        "Ese horario se cruza con una reserva existente.";
+ 
+    disponibilidadDia.appendChild(
+        disponible
+    );
+}
+function horarioEstaOcupado(
+    inicio,
+    fin
+) {
+ 
+    const inicioMinutos =
+        convertirMinutos(inicio);
+ 
+    const finMinutos =
+        convertirMinutos(fin);
+ 
+    const reservasDia =
+        obtenerReservasDia(
+            fechaSeleccionada
+        );
+ 
+    return reservasDia.some(
+        reserva => {
+ 
+            const reservaInicio =
+                convertirMinutos(
+                    reserva.hora_inicio
+                );
+ 
+            const reservaFin =
+                convertirMinutos(
+                    reserva.hora_fin
+                );
+ 
+            return (
+                inicioMinutos < reservaFin &&
+                finMinutos > reservaInicio
+            );
+        }
+    );
+}
+ 
+aceptarReglas.addEventListener(
+    "change",
+    function() {
+ 
+        btnReservar.disabled =
+            !aceptarReglas.checked;
+    }
+);
+ 
+horaInicio.addEventListener(
+    "change",
+    function() {
+ 
+        if (
+            horaInicio.value &&
+            horaFin.value &&
+            horaInicio.value >= horaFin.value
+        ) {
+ 
+            horaFin.value = "";
+        }
+ 
+        if (
+            fechaSeleccionada &&
+            horaInicio.value &&
+            horaFin.value
+        ) {
+ 
+            if (
+                horarioEstaOcupado(
+                    horaInicio.value,
+                    horaFin.value
+                )
+            ) {
+ 
+                mensajeReserva.textContent =
+                    " Ese horario se cruza con una reserva existente.";
+ 
+                mensajeReserva.style.color =
+                    "red";
+            }
+        }
+    }
+);
+ 
+horaFin.addEventListener(
+    "change",
+    function() {
+ 
+        if (
+            fechaSeleccionada &&
+            horaInicio.value &&
+            horaFin.value
+        ) {
+ 
+            if (
+                horaInicio.value >=
+                horaFin.value
+            ) {
+ 
+                mensajeReserva.textContent =
+                    "La hora de finalización debe ser posterior a la hora de inicio.";
+ 
+                mensajeReserva.style.color =
+                    "red";
+ 
+                return;
+            }
+ 
+            if (
+                horarioEstaOcupado(
+                    horaInicio.value,
+                    horaFin.value
+                )
+            ) {
+ 
+                mensajeReserva.textContent =
+                    "Ese horario se cruza con una reserva existente.";
+ 
+                mensajeReserva.style.color =
+                    "red";
+ 
+            } else {
+ 
+                mensajeReserva.textContent =
+                    "El horario está disponible.";
+ 
+                mensajeReserva.style.color =
+                    "green";
+            }
+        }
+    }
+);
+ 
+document
+    .getElementById("mesAnterior")
+    .addEventListener(
+        "click",
+        function() {
+ 
+            fechaActual.setMonth(
+                fechaActual.getMonth() - 1
+            );
+ 
+            mostrarCalendario();
+        }
+    );
+ 
+document
+    .getElementById("mesSiguiente")
+    .addEventListener(
+        "click",
+        function() {
+ 
+            fechaActual.setMonth(
+                fechaActual.getMonth() + 1
+            );
+ 
+            mostrarCalendario();
+        }
+    );
+ 
+btnReservar.addEventListener(
+    "click",
+    async function() {
+ 
+        mensajeReserva.textContent = "";
+ 
+        if (!fechaSeleccionada) {
+ 
+            mensajeReserva.textContent =
+                "Seleccione una fecha.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        const inicio =
+            horaInicio.value;
+ 
+        const fin =
+            horaFin.value;
+ 
+        if (!inicio || !fin) {
+ 
+            mensajeReserva.textContent =
+                "Seleccione la hora de inicio y finalización.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        if (inicio >= fin) {
+ 
+            mensajeReserva.textContent =
+                "La hora de finalización debe ser posterior a la hora de inicio.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        if (
+            inicio < "07:00" ||
+            fin > "16:20"
+        ) {
+ 
+            mensajeReserva.textContent =
+                "Las reservas solamente pueden realizarse entre 7:00 a. m. y 4:00 p. m.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        if (
+            horarioEstaOcupado(
+                inicio,
+                fin
+            )
+        ) {
+ 
+            mensajeReserva.textContent =
+                " Ese horario ya está ocupado. Seleccione otro horario.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        const textoDescripcion =
+            descripcion.value.trim();
+ 
+        if (!textoDescripcion) {
+ 
+            mensajeReserva.textContent =
+                "Escriba una descripción de la reunión.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        if (!aceptarReglas.checked) {
+               mensajeReserva.textContent =
+                "Debe aceptar las reglas de uso de la sala.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+            return;
+        }
+ 
+        try {
+ 
+            btnReservar.disabled =
+                true;
+ 
+            btnReservar.textContent =
+                "Guardando reserva...";
+ 
+            const respuesta =
+                await fetch(
+                    "/crear-reserva",
+                    {
+ 
+                        method: "POST",
+ 
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+ 
+                        body: JSON.stringify({
+ 
+                            fecha:
+                                fechaSeleccionada,
+ 
+                            hora_inicio:
+                                inicio,
+ 
+                            hora_fin:
+                                fin,
+ 
+                            descripcion:
+                                textoDescripcion
+                        })
+                    }
+                );
+ 
+            const resultado =
+                await respuesta.json();
+ 
+            if (resultado.valido) {
+ 
+                mensajeReserva.textContent =
+                    "✓ " +
+                    resultado.mensaje;
+ 
+                mensajeReserva.style.color =
+                    "green";
+ 
+                fechaSeleccionada =
+                    null;
+ 
+                fechaInput.value = "";
+ 
+                horaInicio.value = "";
+ 
+                horaFin.value = "";
+ 
+                descripcion.value = "";
+ 
+                aceptarReglas.checked =
+                    false;
+ 
+                disponibilidadDia.style.display =
+                    "none";
+ 
+                await cargarReservas();
+ 
+            } else {
+ 
+                mensajeReserva.textContent =
+                    resultado.mensaje;
+ 
+                mensajeReserva.style.color =
+                    "red";
+            }
+ 
+        } catch (error) {
+ 
+            console.error(error);
+ 
+            mensajeReserva.textContent =
+                "No se pudo conectar con el servidor.";
+ 
+            mensajeReserva.style.color =
+                "red";
+ 
+        } finally {
+ 
+            btnReservar.disabled =
+                !aceptarReglas.checked;
+ 
+            btnReservar.textContent =
+                "Confirmar reserva";
+        }
+ 
+    }
+);
+ 
+crearHorarios();
+ 
+cargarReservas();
+ 
+</script>
+ 
+</body>
+ 
+</html>
+ 

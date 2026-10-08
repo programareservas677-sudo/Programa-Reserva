@@ -1,61 +1,187 @@
 <!DOCTYPE html>
 <html lang="es">
+ 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
  
     <title>Reserva de Sala de Reuniones</title>
  
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 </head>
  
 <body>
  
-    <div class="contenedor">
+    <div class="pagina">
  
-        <h1>Reserva de Sala de Reuniones</h1>
+        <!-- LADO IZQUIERDO -->
  
-        <p class="institucion">
-            Instituto Tecnológico de Costa Rica
-        </p>
+        <section class="presentacion">
  
-        <form id="reservaForm">
-            <div id="verificacion" style="display: none;">
+            <div class="logo">
+                
+                <span>
+                    Escuela de Ingeniería en<br>
+                    Computadores
+                </span>
+            </div>
  
-    <label for="pin">Código de verificación</label>
+            <div class="contenido-presentacion">
  
-    <input
-        type="text"
-        id="pin"
-        placeholder="Ingrese el código de 6 dígitos"
-        maxlength="6"
-    >
+                <span class="etiqueta">
+                    GESTIÓN DE ESPACIOS
+                </span>
  
-    <button type="button" id="verificarPin">
-        Verificar código
-    </button>
+                <h1>
+                    Tu próxima<br>
+                    reunión<br>
+                    comienza aquí.
+                </h1>
  
-</div>
+                <p>
+                    Accede con tu correo institucional para consultar
+                    horarios, reservar el salón y administrar tus citas.
+                </p>
  
-            <label for="correo">Correo institucional</label>
+                <div class="caracteristicas">
  
-            <input
-                type="email"
-                id="correo"
-                name="correo"
-                placeholder="Ingrese su correo institucional"
-                required
-            >
+                    <div>
+                        <span>✓</span>
+                        Disponibilidad en tiempo real
+                    </div>
  
-            <button type="submit">
-                Continuar
-            </button>
+                    <div>
+                        <span>✓</span>
+                        Reservas rápidas y seguras
+                    </div>
  
-        </form>
+                    <div>
+                        <span>✓</span>
+                        Cancelación desde tu perfil
+                    </div>
+ 
+                </div>
+ 
+            </div>
+ 
+        </section>
+ 
+ 
+
+ 
+        <section class="panel">
+ 
+            <div class="tarjeta">
+ 
+                <span class="titulo-pequeno">
+                    ACCESO INSTITUCIONAL
+                </span>
+ 
+                <h2>
+                    Registro de usuario
+                </h2>
+ 
+                <p class="subtitulo">
+                    Estudiantes, profesores y administración.
+                </p>
+ 
+ 
+                <!-- FORMULARIO -->
+ 
+                <form id="reservaForm">
+ 
+                    <label for="nombre">
+                        Nombre completo
+                    </label>
+ 
+                    <input
+                        type="text"
+                        id="nombre"
+                        name="nombre"
+                        placeholder="Ej. Andrea Morales"
+                        required
+                    >
+ 
+ 
+                    <label for="correo">
+                        Correo institucional
+                    </label>
+ 
+                    <input
+                        type="email"
+                        id="correo"
+                        name="correo"
+                        placeholder="usuario@estudiantec.cr"
+                        required
+                    >
+ 
+                    <p class="ayuda-correo">
+                        Permitidos: @estudiantec.cr y @itcr.ac.cr
+                    </p>
+ 
+ 
+                    <div class="terminos">
+ 
+                        <input
+                            type="checkbox"
+                            id="terminos"
+                            required
+                        >
+ 
+                        <label for="terminos">
+                            Acepto los términos de uso y la política de privacidad.
+                        </label>
+ 
+                    </div>
+ 
+ 
+                    <button type="submit" id="enviarPIN">
+                        Enviar PIN
+                        <span>›</span>
+                    </button>
+ 
+                </form>
+ 
+ 
+                <!-- VERIFICACIÓN -->
+ 
+                <div id="verificacion" style="display: none;">
+ 
+                    <label for="pin">
+                        Código de verificación
+                    </label>
+ 
+                    <input
+                        type="text"
+                        id="pin"
+                        placeholder="Ingrese el código de 6 dígitos"
+                        maxlength="6"
+                    >
+ 
+                    <p id="tiempoPIN"></p>
+ 
+                    <button
+                        type="button"
+                        id="verificarPin">
+                        Verificar código
+                    </button>
+ 
+                </div>
+ 
+ 
+                <p id="mensajeSistema"></p>
+ 
+            </div>
+ 
+        </section>
  
     </div>
+ 
  
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
  
 </body>
+ 
 </html>
+ 
